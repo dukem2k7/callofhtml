@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Call of HTML</title>  
+    <style>  
+        body {   
+            margin: 0;
+            overflow: hidden;   
+            background: radial-gradient(circle, #2a2a2a, #111);   
+            color: white;   
+            font-family: 'Courier New', Courier, monospace;   
+            display: flex;   
+            flex-direction: column;   
+            align-items: center;
+            height: 100vh;
+        }  
+        
+        /* Main Menu Styles */
+        #mainMenu, #shopMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(17, 17, 17, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        #mainMenu h1, #shopMenu h1 {
+            font-size: 3em;
+            color: #ffeb3b;
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+        #tracker {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            background: #333;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        #tracker span { font-weight: bold; }
+        .win-text { color: #4caf50; }
+        .loss-text { color: #f44336; }
+        .credit-text { color: #ffd700; }
+
+        .btn {
+            padding: 10px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            font-family: inherit;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+            margin: 5px;
+        }
+        .btn-play { background: #ff4500; box-shadow: 0 5px 15px rgba(255, 69, 0, 0.4); font-size: 1.5em; padding: 15px 50px; }
+        .btn-play:hover { background: #ff5722; transform: scale(1.05); }
+        .btn-shop { background: #9c27b0; box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4); }
+        .btn-shop:hover { background: #ba68c8; transform: scale(1.05); }
+        .btn-back { background: #555; }
+        .btn-back:hover { background: #777; }
+
+        .class-container, .shop-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 900px;
+        }
+        .card {
+            background: #222;
+            border: 3px solid #444;
+            padding: 15px;
+            border-radius: 10px;
+            width: 180px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-5px); background: #2a2a2a; }
+        .card.active { border-color: #ffeb3b; box-shadow: 0 0 20px rgba(255, 235, 59, 0.4); }
+        .card.locked { opacity: 0.6; cursor: not-allowed; }
+        .card.locked:hover { transform: none; background: #222; }
+        .card h3 { margin-top: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 1.1em;}
+        .card p { font-size: 0.85em; color: #aaa; margin: 5px 0;}
+        .price-tag { color: #ffd700; font-weight: bold; margin-top: 10px; display: block; }
+        .buy-btn { background: #4caf50; color: white; border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer; margin-top: 10px; width: 100%; font-family: inherit; font-weight: bold;}
+        .buy-btn:hover { background: #66bb6a; }
+        .buy-btn:disabled { background: #555; cursor: not-allowed; }
+
+        .loadout-bar {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .loadout-bar select {
+            background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; font-family: inherit; font-size: 1em; outline: none;
+        }
+
+        /* Game UI */
+        #gameCanvas {   
+            background-color: #8bc34a;
+            border: 4px solid #333;
+            margin-top: 10px;   
+            cursor: crosshair;   
+            box-shadow: 0px 0px 40px rgba(0,0,0,0.8);   
+            border-radius: 4px;
+            display: none;
+        }  
+        #ui {   
+            margin-top: 15px;
+            text-align: center;   
+            height: auto;   
+            text-shadow: 1px 1px 2px black;   
+            background: rgba(0, 0, 0, 0.6);  
+            padding: 10px 30px;
+            border: 2px solid #444;  
+            border-radius: 8px;  
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+            display: none;
+        }  
+        h2 { margin: 0 0 5px 0; color: #ffeb3b; letter-spacing: 2px; text-transform: uppercase;}  
+        p { margin: 5px 0; font-size: 1.1em; font-weight: bold;}  
+        
+        #inventoryContainer {
+            display: flex; gap: 10px; justify-content: center; margin-top: 8px;
+        }
+        .inv-slot {
+            padding: 6px 12px; background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #555; border-radius: 6px;
+            color: #ccc; font-size: 0.9em; min-width: 90px;
+            text-align: center; transition: all 0.2s ease;
+        }
+        .inv-slot.active {
+            border-color: #ffeb3b; color: white;
+            background: rgba(255, 235, 59, 0.2);
+            box-shadow: 0 0 10px rgba(255, 235, 59, 0.4);
+            font-weight: bold;
+        }
+    </style>  
+</head>  
+<body>  
+  
+    <div id="mainMenu">
+        <h1>Call of HTML</h1>
+        <div id="tracker">
+            Wins: <span id="winCount" class="win-text">0</span> | 
+            Losses: <span id="lossCount" class="loss-text">0</span> | 
+            Credits: <span id="creditCount" class="credit-text">0</span>
+        </div>
+        
+        <div class="loadout-bar">
+            <span>Equipped Ability:</span>
+            <select id="abilitySelect" onchange="equipAbility(this.value)"><option value="none" selected="selected">None</option></select>
+        </div>
+
+        <div class="class-container" id="classSelectionContainer">
+                    <div class="card " onclick="selectClass('assault')">
+                        <h3 style="color: #00bfff;">Assault</h3>
+                        <p>HP: 100 | Spd: 3.2<br>Wpn: machinegun</p>
+                    </div>
+                
+                    <div class="card active" onclick="selectClass('tank')">
+                        <h3 style="color: #8bc34a;">Tank</h3>
+                        <p>HP: 150 | Spd: 2.2<br>Wpn: shotgun</p>
+                    </div>
+                
+                    <div class="card " onclick="selectClass('scout')">
+                        <h3 style="color: #ffeb3b;">Scout</h3>
+                        <p>HP: 75 | Spd: 4.5<br>Wpn: smg</p>
+                    </div>
+                </div>
+        
+        <div>
+            <button class="btn btn-shop" onclick="toggleShop(true)">Shop / Upgrades</button>
+            <button class="btn btn-play" onclick="startGame()">Deploy</button>
+        </div>
+    </div>
+
+    <div id="shopMenu" style="display: none;">
+        <h1>Black Market</h1>
+        <div id="trackerShop" style="margin-bottom: 20px; font-size: 1.2em; background: #333; padding: 10px 20px; border-radius: 8px; border: 2px solid #555;">
+            Available Credits: <span id="shopCreditCount" class="credit-text">0</span>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 10px;">Characters</h2>
+        <div class="shop-container" id="shopCharacters">
+                    <div class="card " style="border-color: #444; cursor: default;">
+                        <h3 style="color: #e0e0e0;">Ghost</h3>
+                        <p>Frail but deadly speed.</p>
+                        
+                            <span class="price-tag">250 Credits</span>
+                            <button class="buy-btn" onclick="buyItem('class', 'ghost', 250)" disabled="disabled">Buy</button>
+                        
+                    </div>
+                
+                    <div class="card " style="border-color: #444; cursor: default;">
+                        <h3 style="color: #f44336;">Juggernaut</h3>
+                        <p>Massive health, very slow.</p>
+                        
+                            <span class="price-tag">500 Credits</span>
+                            <button class="buy-btn" onclick="buyItem('class', 'juggernaut', 500)" disabled="disabled">Buy</button>
+                        
+                    </div>
+                </div>
+
+        <h2 style="color: white; margin-bottom: 10px;">Abilities</h2>
+        <div class="shop-container" id="shopAbilities">
+                    <div class="card " style="border-color: #444; cursor: default;">
+                        <h3 style="color: white;">Dash</h3>
+                        <p>Press SHIFT to dodge quickly. (3s cooldown)</p>
+                        
+                            <span class="price-tag">150 Credits</span>
+                            <button class="buy-btn" onclick="buyItem('ability', 'dash', 150)" disabled="disabled">Buy</button>
+                        
+                    </div>
+                
+                    <div class="card " style="border-color: #444; cursor: default;">
+                        <h3 style="color: white;">Regeneration</h3>
+                        <p>Passively heal 2 HP every second.</p>
+                        
+                            <span class="price-tag">300 Credits</span>
+                            <button class="buy-btn" onclick="buyItem('ability', 'regen', 300)" disabled="disabled">Buy</button>
+                        
+                    </div>
+                
+                    <div class="card " style="border-color: #444; cursor: default;">
+                        <h3 style="color: white;">Vampirism</h3>
+                        <p>Heal 15 HP for every kill you get.</p>
+                        
+                            <span class="price-tag">450 Credits</span>
+                            <button class="buy-btn" onclick="buyItem('ability', 'vampire', 450)" disabled="disabled">Buy</button>
+                        
+                    </div>
+                </div>
+
+        <button class="btn btn-back" onclick="toggleShop(false)">Back to Menu</button>
+    </div>
+
+    <div id="ui">  
+        <h2>Call of HTML : Battle Royale</h2>  
+        <p id="stats">Health: 100 | Coins: 0 | Kills: 0</p>  
+        <p id="playerCount" style="color: #ff4500;">Bots Remaining: 15</p>  
+        
+        <div id="inventoryContainer">
+            <div class="inv-slot active" id="slot0">1: Pistol (∞)</div>
+            <div class="inv-slot" id="slot1">2: [Empty]</div>
+            <div class="inv-slot" id="slot2">3: [Empty]</div>
+            <div class="inv-slot" id="slot3">4: [Empty]</div>
+            <div class="inv-slot" id="slot4">5: [Empty]</div>
+        </div>
+    </div>  
+    <canvas id="gameCanvas" width="900" height="650"></canvas>  
+  
+<script>  
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');  
+    const statsUI = document.getElementById('stats');
+    const countUI = document.getElementById('playerCount');  
+      
+    const MAP_SIZE = 4000;
+    const camera = { x: MAP_SIZE/2, y: MAP_SIZE/2 };
+    let screenShake = 0;  
+    const BOT_SPEED = 1.6;  
+    let frameCount = 0;
+    const keys = { w: false, a: false, s: false, d: false, e: false, shift: false };
+    const mouse = { x: canvas.width/2, y: canvas.height/2, isDown: false };
+    
+    // Meta Progression & Game State
+    let gameState = 'menu';
+    let wins = parseInt(localStorage.getItem('coh_wins')) || 0;
+    let losses = parseInt(localStorage.getItem('coh_losses')) || 0;
+    let credits = parseInt(localStorage.getItem('coh_credits')) || 0;
+    
+    // Unlocks
+    let unlockedClasses = JSON.parse(localStorage.getItem('coh_unlocked_classes')) || ['assault', 'tank', 'scout'];
+    let unlockedAbilities = JSON.parse(localStorage.getItem('coh_unlocked_abilities')) || ['none'];
+    
+    let selectedClass = localStorage.getItem('coh_selected_class') || 'assault';
+    let selectedAbility = localStorage.getItem('coh_selected_ability') || 'none';
+    let gameOverProcessed = false;
+
+    // Ability Cooldowns
+    let dashCooldown = 0;
+    const CLASSES = {
+        assault: { name: 'Assault', hp: 100, speed: 3.2, color: '#00bfff', startWeapon: 'machinegun', cost: 0 },
+        tank: { name: 'Tank', hp: 150, speed: 2.2, color: '#8bc34a', startWeapon: 'shotgun', cost: 0 },
+        scout: { name: 'Scout', hp: 75, speed: 4.5, color: '#ffeb3b', startWeapon: 'smg', cost: 0 },
+        ghost: { name: 'Ghost', hp: 60, speed: 4.8, color: '#e0e0e0', startWeapon: 'sniper', cost: 250, desc: 'Frail but deadly speed.' },
+        juggernaut: { name: 'Juggernaut', hp: 250, speed: 1.5, color: '#f44336', startWeapon: 'minigun', cost: 500, desc: 'Massive health, very slow.' }
+    };
+
+    const ABILITIES = {
+        none: { name: 'None', cost: 0, desc: 'No special ability.' },
+        dash: { name: 'Dash', cost: 150, desc: 'Press SHIFT to dodge quickly. (3s cooldown)' },
+        regen: { name: 'Regeneration', cost: 300, desc: 'Passively heal 2 HP every second.' },
+        vampire: { name: 'Vampirism', cost: 450, desc: 'Heal 15 HP for every kill you get.' }
+    };
+
+    // Initialize UI
+    function updateMenuUI() {
+        document.getElementById('winCount').innerText = wins;
+        document.getElementById('lossCount').innerText = losses;
+        document.getElementById('creditCount').innerText = credits;
+        document.getElementById('shopCreditCount').innerText = credits;
+
+        // Render Class Selection
+        const classContainer = document.getElementById('classSelectionContainer');
+        classContainer.innerHTML = '';
+        
+        Object.keys(CLASSES).forEach(key => {
+            if (unlockedClasses.includes(key)) {
+                const c = CLASSES[key];
+                const isActive = selectedClass === key ? 'active' : '';
+                classContainer.innerHTML += `
+                    <div class="card ${isActive}" onclick="selectClass('${key}')">
+                        <h3 style="color: ${c.color};">${c.name}</h3>
+                        <p>HP: ${c.hp} | Spd: ${c.speed}<br>Wpn: ${c.startWeapon}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Update Ability Dropdown
+        const abilitySelect = document.getElementById('abilitySelect');
+        abilitySelect.innerHTML = '';
+        unlockedAbilities.forEach(key => {
+            const ab = ABILITIES[key];
+            const isSelected = selectedAbility === key ? 'selected' : '';
+            abilitySelect.innerHTML += `<option value="${key}" ${isSelected}>${ab.name}</option>`;
+        });
+        
+        renderShop();
+    }
+
+    function renderShop() {
+        const charContainer = document.getElementById('shopCharacters');
+        const abContainer = document.getElementById('shopAbilities');
+        charContainer.innerHTML = '';
+        abContainer.innerHTML = '';
+        
+        // Render Characters in Shop
+        Object.keys(CLASSES).forEach(key => {
+            const c = CLASSES[key];
+            if (c.cost > 0) {
+                const isUnlocked = unlockedClasses.includes(key);
+                charContainer.innerHTML += `
+                    <div class="card ${isUnlocked ? 'active' : ''}" style="border-color: ${isUnlocked ? '#4caf50' : '#444'}; cursor: default;">
+                        <h3 style="color: ${c.color};">${c.name}</h3>
+                        <p>${c.desc}</p>
+                        ${isUnlocked ? '<span class="price-tag" style="color:#4caf50;">OWNED</span>' : `
+                            <span class="price-tag">${c.cost} Credits</span>
+                            <button class="buy-btn" onclick="buyItem('class', '${key}', ${c.cost})" ${credits < c.cost ? 'disabled' : ''}>Buy</button>
+                        `}
+                    </div>
+                `;
+            }
+        });
+        
+        // Render Abilities in Shop
+        Object.keys(ABILITIES).forEach(key => {
+            const a = ABILITIES[key];
+            if (a.cost > 0) {
+                const isUnlocked = unlockedAbilities.includes(key);
+                abContainer.innerHTML += `
+                    <div class="card ${isUnlocked ? 'active' : ''}" style="border-color: ${isUnlocked ? '#4caf50' : '#444'}; cursor: default;">
+                        <h3 style="color: white;">${a.name}</h3>
+                        <p>${a.desc}</p>
+                        ${isUnlocked ? '<span class="price-tag" style="color:#4caf50;">OWNED</span>' : `
+                            <span class="price-tag">${a.cost} Credits</span>
+                            <button class="buy-btn" onclick="buyItem('ability', '${key}', ${a.cost})" ${credits < a.cost ? 'disabled' : ''}>Buy</button>
+                        `}
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function buyItem(type, id, cost) {
+        if (credits >= cost) {
+            credits -= cost;
+            localStorage.setItem('coh_credits', credits);
+            if (type === 'class') {
+                unlockedClasses.push(id);
+                localStorage.setItem('coh_unlocked_classes', JSON.stringify(unlockedClasses));
+            } else {
+                unlockedAbilities.push(id);
+                localStorage.setItem('coh_unlocked_abilities', JSON.stringify(unlockedAbilities));
+            }
+            updateMenuUI();
+        }
+    }
+
+    function selectClass(cls) {
+        selectedClass = cls;
+        localStorage.setItem('coh_selected_class', cls);
+        updateMenuUI();
+    }
+
+    function equipAbility(ab) {
+        selectedAbility = ab;
+        localStorage.setItem('coh_selected_ability', ab);
+    }
+
+    function toggleShop(show) {
+        document.getElementById('mainMenu').style.display = show ? 'none' : 'flex';
+        document.getElementById('shopMenu').style.display = show ? 'flex' : 'none';
+        if (show) renderShop();
+    }
+
+    updateMenuUI();
+    
+    function calculateReward(placement) {
+        if (placement === 1) return 150;
+        if (placement <= 5) return 80;
+        if (placement <= 10) return 40;
+        if (placement <= 15) return 20;
+        return 5;
+    }
+
+    function startGame() {
+        document.getElementById('mainMenu').style.display = 'none';
+        document.getElementById('ui').style.display = 'block';
+        document.getElementById('gameCanvas').style.display = 'block';
+        gameState = 'playing';
+        gameOverProcessed = false;
+        dashCooldown = 0;
+        frameCount = 0;
+        init();
+    }
+
+    function returnToMenu() {
+        document.getElementById('mainMenu').style.display = 'flex';
+        document.getElementById('ui').style.display = 'none';
+        document.getElementById('gameCanvas').style.display = 'none';
+        updateMenuUI();
+        gameState = 'menu';
+    }
+
+    window.addEventListener('keydown', (e) => {  
+        const key = e.key.toLowerCase();  
+        if(keys.hasOwnProperty(key)) keys[key] = true;  
+        if(e.key === 'Shift') keys.shift = true;
+
+        if (gameState !== 'playing' && gameState !== 'gameover') return;
+
+        if (['1', '2', '3', '4', '5'].includes(key) && player) {
+            let slotIndex = parseInt(key) - 1;
+            if (slotIndex < player.inventory.length) {
+                player.activeSlot = slotIndex;
+                player.weapon = player.inventory[slotIndex];
+            }
+        }
+          
+        if (key === 'e' && player) {  
+            let nearest = null;  
+            let minDist = 80;  
+            for (let sk of shopkeepers) {  
+                let d = Math.hypot(player.x - sk.x, player.y - sk.y);  
+                if (d < minDist) { nearest = sk; minDist = d; }  
+            }  
+            if (nearest) {  
+                const w = nearest.weapon;  
+                if (player.coins >= w.cost) {  
+                    let hasGun = player.inventory.find(item => item.id === w.id);
+                    if (hasGun) {
+                        player.coins -= w.cost;
+                        player.ammo[w.id] += w.defaultAmmo;  
+                        floatingTexts.push(new FloatingText(player.x, player.y, `+Ammo for ${w.name}!`, '#4caf50'));
+                    } else {
+                        player.coins -= w.cost;
+                        if (player.inventory.length < 5) {
+                            player.inventory.push(w);
+                            player.activeSlot = player.inventory.length - 1;
+                        } else {
+                            player.inventory[player.activeSlot] = w;
+                        }
+                        player.weapon = w;
+                        player.ammo[w.id] += w.defaultAmmo;  
+                        floatingTexts.push(new FloatingText(player.x, player.y, `Equipped ${w.name}!`, '#4caf50'));  
+                    }
+                } else {  
+                    floatingTexts.push(new FloatingText(player.x, player.y, `Not enough coins!`, 'red'));
+                    screenShake += 5;  
+                }  
+            }  
+        }  
+          
+        if (e.key === 'Enter' && gameState === 'gameover') {   
+            returnToMenu();
+        }  
+    });  
+      
+    window.addEventListener('keyup', (e) => {  
+        const key = e.key.toLowerCase();  
+        if(keys.hasOwnProperty(key)) keys[key] = false;  
+        if(e.key === 'Shift') keys.shift = false;
+    });
+    canvas.addEventListener('mousemove', (e) => {  
+        const rect = canvas.getBoundingClientRect();  
+        mouse.x = e.clientX - rect.left;  
+        mouse.y = e.clientY - rect.top;  
+    });
+    canvas.addEventListener('mousedown', () => mouse.isDown = true);  
+    canvas.addEventListener('mouseup', () => mouse.isDown = false);
+    
+    let player, shopkeepers, floors, bots, bullets, drops, walls, barrels, props, explosions, particles, floatingTexts, ponds, tunnels, throwables;  
+    let kills = 0;
+    const WEAPONS = {  
+        pistol: { id: 'pistol', name: 'Pistol', delay: 35, speed: 9, damage: 25, spread: 0.05, bullets: 1, isInfinite: true },  
+        machinegun: { id: 'machinegun', name: 'Machine Gun', delay: 8, speed: 11, damage: 15, spread: 0.15, bullets: 1, defaultAmmo: 100, cost: 5 },  
+        shotgun: { id: 'shotgun', name: 'Shotgun', delay: 55, speed: 8, damage: 18, spread: 0.4, bullets: 6, defaultAmmo: 30, cost: 5 },  
+        sniper: { id: 'sniper', name: 'Sniper', delay: 80, speed: 30, damage: 90, spread: 0.01, bullets: 1, defaultAmmo: 10, cost: 10 },  
+        minigun: { id: 'minigun', name: 'Minigun', delay: 4, speed: 12, damage: 10, spread: 0.25, bullets: 1, defaultAmmo: 250, cost: 15 },  
+        laser: { id: 'laser', name: 'Plasma Rifle', delay: 15, speed: 20, damage: 45, spread: 0, bullets: 1, defaultAmmo: 40, cost: 20 },
+        smg: { id: 'smg', name: 'SMG', delay: 5, speed: 13, damage: 12, spread: 0.2, bullets: 1, defaultAmmo: 150, cost: 8 },  
+        rocket: { id: 'rocket', name: 'RPG', delay: 100, speed: 14, damage: 120, spread: 0.05, bullets: 1, defaultAmmo: 5, cost: 25, isExplosive: true },
+        grenade: { id: 'grenade', name: 'Frag Grenade', delay: 50, speed: 12, damage: 150, spread: 0, bullets: 1, defaultAmmo: 5, cost: 10, isThrowable: true },
+        medkit: { id: 'medkit', name: 'Medkit', delay: 30, speed: 0, damage: 0, spread: 0, bullets: 0, defaultAmmo: 1, isConsumable: true }
+    };
+    
+    function rectIntersect(r1, r2) {  
+        return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
+    }  
+  
+    function checkWallCollision(x, y, size) {  
+        const entityBox = { x: x - size/2, y: y - size/2, w: size, h: size };
+        for (let wall of walls) {   
+            if (rectIntersect(entityBox, wall)) return true;
+        }  
+        for (let barrel of barrels) {  
+            const barrelBox = { x: barrel.x - barrel.size/2, y: barrel.y - barrel.size/2, w: barrel.size, h: barrel.size };
+            if (rectIntersect(entityBox, barrelBox)) return true;  
+        }  
+        return false;
+    }  
+
+    function hasLineOfSight(x1, y1, x2, y2) {
+        const dist = Math.hypot(x2 - x1, y2 - y1);
+        const steps = dist / 15; 
+        for (let i = 0; i <= steps; i++) {
+            const cx = x1 + ((x2 - x1) * i) / steps;
+            const cy = y1 + ((y2 - y1) * i) / steps;
+            if (checkWallCollision(cx, cy, 2)) return false;
+            for (let t of tunnels) {
+                if (cx >= t.x && cx <= t.x + t.w && cy >= t.y && cy <= t.y + t.h) return false;
+            }
+        }
+        return true;
+    }
+ 
+    function checkSpawnCollision(x, y, w, h) { 
+        const box = { x, y, w, h };
+        for (let wall of walls) { 
+            if (rectIntersect(box, wall)) return true;
+        } 
+        for (let f of floors) { 
+            if (rectIntersect(box, f)) return true;
+        } 
+        for (let p of ponds) { 
+            const pBox = { x: p.x - p.radius, y: p.y - p.radius, w: p.radius*2, h: p.radius*2 };
+            if (rectIntersect(box, pBox)) return true; 
+        } 
+        for (let barrel of barrels) { 
+            const bBox = { x: barrel.x - barrel.size/2, y: barrel.y - barrel.size/2, w: barrel.size, h: barrel.size };
+            if (rectIntersect(box, bBox)) return true; 
+        } 
+        for (let prop of props) { 
+            const pBox = { x: prop.x - prop.size/2, y: prop.y - prop.size/2, w: prop.size, h: prop.size };
+            if (rectIntersect(box, pBox)) return true; 
+        } 
+        return false;
+    } 
+  
+    function drawShadow(x, y, size) {  
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();  
+        ctx.ellipse(x, y + size/2.5, size/1.5, size/3, 0, 0, Math.PI*2);  
+        ctx.fill();
+    }  
+
+    function createExplosion(ex, ey, damage = 90, radius = 150) {
+        explosions.push(new Explosion(ex, ey, radius));
+        screenShake += 20;   
+        for(let i=0; i<20; i++) particles.push(new Particle(ex, ey, '#ff9800', 8));
+        const checkDamage = (ent) => {  
+            if (!ent) return;
+            const dist = Math.hypot(ent.x - ex, ent.y - ey);  
+            if (dist < radius) {  
+                let dmg = damage * (1 - dist/radius);
+                ent.health -= dmg;  
+                floatingTexts.push(new FloatingText(ent.x, ent.y, Math.floor(dmg), '#ff8c00'));  
+            }  
+        };  
+        checkDamage(player);
+        bots.forEach(checkDamage);  
+        
+        for (let b of barrels) {
+             const dist = Math.hypot(b.x - ex, b.y - ey);
+             if (dist < radius) {
+                 b.health -= damage * (1 - dist/radius);
+             }
+        }
+    }
+ 
+    class Tunnel { 
+        constructor(x, y, w, h) { 
+            this.x = x;
+            this.y = y; this.w = w; this.h = h; 
+        } 
+        drawRoof() { 
+            let inside = player && rectIntersect({x: player.x, y: player.y, w: player.size, h: player.size}, this);
+            ctx.fillStyle = inside ? 'rgba(40, 40, 40, 0.2)' : '#424242'; 
+            ctx.fillRect(this.x, this.y, this.w, this.h);
+            if (!inside) { 
+                ctx.fillStyle = '#212121';
+                ctx.fillRect(this.x + 20, this.y + 20, 30, 30); 
+                ctx.fillRect(this.x + this.w - 50, this.y + this.h - 50, 30, 30);
+                ctx.strokeStyle = '#111'; ctx.lineWidth = 4; 
+                ctx.strokeRect(this.x, this.y, this.w, this.h);
+            } 
+        } 
+    } 
+  
+    class Pond {  
+        constructor(x, y, radius) {   
+            this.x = x;
+            this.y = y; this.radius = radius;   
+        }  
+        draw() {  
+            ctx.fillStyle = 'rgba(79, 195, 247, 0.4)';
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();  
+            ctx.strokeStyle = 'rgba(41, 182, 246, 0.5)';  
+            ctx.lineWidth = 4; ctx.stroke();
+        }  
+    }  
+  
+    class Particle {  
+        constructor(x, y, color, speed) {  
+            this.x = x;
+            this.y = y; this.color = color;  
+            const angle = Math.random() * Math.PI * 2;  
+            const vel = Math.random() * speed;
+            this.vx = Math.cos(angle) * vel;   
+            this.vy = Math.sin(angle) * vel;  
+            this.life = 15 + Math.random() * 20;  
+            this.maxLife = this.life;
+            this.size = 2 + Math.random() * 4;  
+        }  
+        update() {   
+            this.x += this.vx;
+            this.y += this.vy;   
+            this.vx *= 0.85; this.vy *= 0.85;   
+            this.life--;
+        }  
+        draw() {  
+            ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+            ctx.fillStyle = this.color;  
+            ctx.fillRect(this.x, this.y, this.size, this.size);  
+            ctx.globalAlpha = 1.0;
+        }  
+    }  
+  
+    class FloatingText {  
+        constructor(x, y, text, color) {  
+            this.x = x + (Math.random()-0.5)*20;
+            this.y = y - 20 + (Math.random()-0.5)*10;  
+            this.text = text;  
+            this.color = color;   
+            this.life = 50;
+        }  
+        update() {   
+            this.y -= 0.6;
+            this.life--;   
+        }  
+        draw() {  
+            ctx.globalAlpha = Math.max(0, this.life / 50);
+            ctx.fillStyle = this.color;  
+            ctx.font = 'bold 16px Courier New';  
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 3;  
+            ctx.strokeText(this.text, this.x, this.y);
+            ctx.fillText(this.text, this.x, this.y);  
+            ctx.globalAlpha = 1.0;  
+        }  
+    }  
+  
+    class Prop {  
+        constructor(x, y, type, size) {   
+            this.x = x;
+            this.y = y; this.type = type;   
+            this.size = size || (40 + Math.random() * 50);
+        }  
+        draw() {  
+            drawShadow(this.x, this.y, this.size);
+            if (this.type === 'bush') {  
+                ctx.fillStyle = '#2e7d32';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size/2, 0, Math.PI*2); ctx.fill();  
+                ctx.fillStyle = '#1b5e20';  
+                ctx.beginPath(); ctx.arc(this.x - this.size/6, this.y - this.size/6, this.size/3, 0, Math.PI*2);
+                ctx.fill();  
+                ctx.beginPath(); ctx.arc(this.x + this.size/6, this.y + this.size/6, this.size/3, 0, Math.PI*2); ctx.fill();
+            } else if (this.type === 'rock') {  
+                ctx.fillStyle = '#7f8c8d';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size/2.5, 0, Math.PI*2); ctx.fill();  
+                ctx.fillStyle = '#95a5a6';  
+                ctx.beginPath(); ctx.arc(this.x - 5, this.y - 5, this.size/4, 0, Math.PI*2);
+                ctx.fill();  
+            } else if (this.type === 'tree') {  
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(this.x - 6, this.y, 12, this.size/1.5);  
+                ctx.fillStyle = '#388e3c';   
+                ctx.beginPath(); ctx.arc(this.x, this.y - this.size/4, this.size/1.2, 0, Math.PI*2); ctx.fill();
+            }  
+        }  
+    }  
+  
+    class Wall {  
+        constructor(x, y, w, h, isCrate = false) {   
+            this.x = x;
+            this.y = y; this.w = w; this.h = h; this.isCrate = isCrate;
+        }  
+        draw() {  
+            if (this.isCrate) {  
+                ctx.fillStyle = '#8d6e63';
+                ctx.fillRect(this.x, this.y, this.w, this.h);  
+                ctx.strokeStyle = '#5d4037'; ctx.lineWidth = 3; ctx.strokeRect(this.x, this.y, this.w, this.h);  
+                ctx.beginPath(); ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.w, this.y + this.h); ctx.stroke();  
+            } else {  
+                ctx.fillStyle = '#4e342e';
+                ctx.fillRect(this.x + 3, this.y + 3, this.w, this.h);  
+                ctx.fillStyle = '#a1887f'; 
+                ctx.fillRect(this.x, this.y, this.w, this.h);  
+                ctx.strokeStyle = '#3e2723';
+                ctx.lineWidth = 2; ctx.strokeRect(this.x, this.y, this.w, this.h);  
+            }  
+        }  
+    }  
+  
+    class Shopkeeper {  
+        constructor(x, y, weaponId) {  
+            this.x = x;
+            this.y = y; this.weapon = WEAPONS[weaponId];   
+            this.size = 26; this.timer = Math.random() * 100;
+        }  
+        draw() {  
+            this.timer += 0.1;
+            const floatY = Math.sin(this.timer) * 3;  
+            drawShadow(this.x, this.y + 12, this.size);  
+              
+            ctx.fillStyle = '#9c27b0';
+            ctx.fillRect(this.x - this.size/2, this.y - this.size/2 + floatY, this.size, this.size);  
+            ctx.fillStyle = 'white';
+            ctx.fillRect(this.x - 7, this.y - 5 + floatY, 5, 5);   
+            ctx.fillRect(this.x + 2, this.y - 5 + floatY, 5, 5);
+            ctx.textAlign = 'center';   
+            ctx.fillStyle = 'white';  
+            ctx.fillText(this.weapon.name, this.x, this.y - 22 + floatY);  
+              
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText(`${this.weapon.cost} Coins`, this.x, this.y - 9 + floatY);  
+              
+            if (player && Math.hypot(player.x - this.x, player.y - this.y) < 80) {  
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(this.x - 35, this.y + 15 + floatY, 70, 20);  
+                ctx.fillStyle = 'white';
+                ctx.fillText("Press 'E'", this.x, this.y + 29 + floatY);  
+            }  
+              
+            ctx.textAlign = 'left';
+        }  
+    }  
+  
+    class Barrel {  
+        constructor(x, y) {   
+            this.x = x;
+            this.y = y; this.size = 24; this.health = 25;   
+        }  
+        draw() {  
+            drawShadow(this.x, this.y, this.size * 1.2);
+            ctx.fillStyle = '#b71c1c';   
+            ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);  
+            ctx.strokeStyle = '#5c0000'; ctx.lineWidth = 2;
+            ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);  
+        }  
+        explode() {  
+            createExplosion(this.x, this.y, 90, 150);
+        }  
+    }  
+
+    class Throwable {
+        constructor(x, y, angle, speed, damage) {
+            this.x = x;
+            this.y = y;
+            this.vx = Math.cos(angle) * speed;
+            this.vy = Math.sin(angle) * speed;
+            this.damage = damage;
+            this.timer = 60;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vx *= 0.93; this.vy *= 0.93;
+            this.timer--;
+            if (this.timer <= 0) {
+                createExplosion(this.x, this.y, this.damage, 180);
+            }
+        }
+        draw() {
+            drawShadow(this.x, this.y, 14);
+            ctx.fillStyle = '#2e7d32'; 
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fill();
+            if (this.timer % 10 < 5) {
+                ctx.fillStyle = 'red';
+                ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    }
+  
+    class Explosion {  
+        constructor(x, y, targetRadius = 130) {   
+            this.x = x;
+            this.y = y; this.radius = 10; this.maxRadius = targetRadius; this.life = 1.0;
+        }  
+        update() {   
+            this.radius += 10;
+            this.life -= 0.05;   
+        }  
+        draw() {  
+            if (this.life <= 0) return;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);  
+            ctx.fillStyle = `rgba(255, 100, 0, ${this.life})`; ctx.fill();
+        }  
+    }  
+  
+    class Entity {  
+        constructor(x, y, color, isPlayer = false, playerClass = null) {  
+            this.x = x;
+            this.y = y; this.size = 20; this.color = color;  
+            this.isPlayer = isPlayer;  
+            this.targetAngle = 0;
+            
+            // Wander Variables
+            this.wanderAngle = Math.random() * Math.PI * 2;
+            this.wanderTimer = Math.floor(Math.random() * 100);
+            
+            this.maxHealth = isPlayer && playerClass ? playerClass.hp : 100;
+            this.health = this.maxHealth; 
+            this.speed = isPlayer && playerClass ?
+            playerClass.speed : BOT_SPEED;  
+            
+            this.inventory = isPlayer && playerClass ? [WEAPONS.pistol, WEAPONS[playerClass.startWeapon]] : [];
+            this.activeSlot = isPlayer ? 1 : 0;
+            this.weapon = isPlayer && playerClass ? WEAPONS[playerClass.startWeapon] : WEAPONS.pistol; 
+            
+            this.shootCooldown = 0;  
+            this.coins = 0;
+            this.ammo = { machinegun: 0, shotgun: 0, sniper: 0, minigun: 0, laser: 0, smg: 0, rocket: 0, grenade: 0, medkit: 0 };
+            if (isPlayer && playerClass) {
+                this.ammo[playerClass.startWeapon] = WEAPONS[playerClass.startWeapon].defaultAmmo * 2;
+            }
+        }  
+        draw() {  
+            drawShadow(this.x, this.y, this.size);
+            if (this.isPlayer && dashCooldown > 0) {
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(this.x - this.size/2 - 2, this.y - this.size/2 - 2, this.size + 4, this.size + 4);
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);  
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+            ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);  
+              
+            let angle = this.isPlayer ?
+                Math.atan2((mouse.y + camera.y) - this.y, (mouse.x + camera.x) - this.x) :   
+                this.targetAngle;
+            ctx.save();   
+            ctx.translate(this.x, this.y); ctx.rotate(angle);  
+            ctx.fillStyle = '#444'; ctx.fillRect(this.size/2, -3, 18, 6);
+            if (this.shootCooldown > this.weapon.delay - 3 && !this.weapon.isConsumable) {  
+                ctx.fillStyle = 'rgba(255, 200, 0, 0.8)';
+                ctx.beginPath(); ctx.arc(this.size/2 + 22, 0, 5, 0, Math.PI*2); ctx.fill();  
+            }  
+            ctx.restore();
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';  
+            ctx.fillRect(this.x - 16, this.y - 23, 32, 6);  
+            ctx.fillStyle = 'lime';
+            if (this.health < this.maxHealth * 0.3) ctx.fillStyle = 'red';  
+            ctx.fillRect(this.x - 15, this.y - 22, 30 * (Math.max(0, this.health)/this.maxHealth), 4);
+        }  
+        update() {  
+            if (this.shootCooldown > 0) this.shootCooldown--;
+            let mx = 0, my = 0;  
+              
+            if (this.isPlayer) {  
+                if (keys.w) my -= this.speed;
+                if (keys.s) my += this.speed;  
+                if (keys.a) mx -= this.speed;  
+                if (keys.d) mx += this.speed;
+                if (selectedAbility === 'dash' && keys.shift && dashCooldown <= 0 && (mx !== 0 || my !== 0)) {
+                    mx *= 12;
+                    my *= 12;
+                    dashCooldown = 180;
+                    for(let i=0; i<10; i++) particles.push(new Particle(this.x, this.y, '#00ffff', 5));
+                }
+
+                if (mouse.isDown && this.shootCooldown <= 0) {
+                    if (this.weapon.isInfinite || this.ammo[this.weapon.id] > 0) {
+                        this.shoot(mouse.x + camera.x, mouse.y + camera.y);
+                    }
+                }  
+            } else {  
+                let closestTarget = null;
+                let minTargetDist = 550;
+
+                if (player && player.health > 0) {
+                    let dist = Math.hypot(player.x - this.x, player.y - this.y);
+                    if (dist < minTargetDist && hasLineOfSight(this.x, this.y, player.x, player.y)) {
+                        closestTarget = player;
+                        minTargetDist = dist;
+                    }
+                }
+
+                for (let bot of bots) {
+                    if (bot !== this && bot.health > 0) {
+                        let dist = Math.hypot(bot.x - this.x, bot.y - 
+                        this.y);
+                        if (dist < minTargetDist && hasLineOfSight(this.x, this.y, bot.x, bot.y)) {
+                            closestTarget = bot;
+                            minTargetDist = dist;
+                        }
+                    }
+                }
+
+                if (closestTarget) {
+                    const ang = Math.atan2(closestTarget.y - this.y, closestTarget.x - this.x);
+                    this.targetAngle = ang;
+                    if (minTargetDist > 250) {   
+                        mx = Math.cos(ang) * this.speed;
+                        my = Math.sin(ang) * this.speed;   
+                    } else if (minTargetDist < 150) {  
+                        mx = -Math.cos(ang) * this.speed * 0.5;
+                        my = -Math.sin(ang) * this.speed * 0.5;  
+                    }  
+                      
+                    if (this.shootCooldown <= 0 && Math.random() < 0.05) {   
+                        this.shoot(closestTarget.x, closestTarget.y);
+                    }  
+                } else {
+                    // Wander Behavior when no target is in sight
+                    this.wanderTimer--;
+                    
+                    // Move in wander direction at slightly reduced speed
+                    mx = Math.cos(this.wanderAngle) * (this.speed * 0.7);
+                    my = Math.sin(this.wanderAngle) * (this.speed * 0.7);
+                    this.targetAngle = this.wanderAngle;
+
+                    // If timer runs out or about to hit a wall in the next 10 frames, pick new direction
+                    if (this.wanderTimer <= 0 || checkWallCollision(this.x + mx * 10, this.y + my * 10, this.size)) {
+                        this.wanderAngle = Math.random() * Math.PI * 2;
+                        this.wanderTimer = 60 + Math.random() * 120; // Wander aimlessly for 1 to 3 seconds
+                        mx = 0; 
+                        my = 0; // Pause briefly
+                    }
+                }
+            }  
+            if (!checkWallCollision(this.x + mx, this.y, this.size)) this.x += mx;
+            if (!checkWallCollision(this.x, this.y + my, this.size)) this.y += my;  
+        }  
+        shoot(tx, ty) {  
+            if (this.isPlayer && this.weapon.isConsumable) {
+                if (this.health >= this.maxHealth) {
+                    floatingTexts.push(new FloatingText(this.x, this.y, "Health Full!", 'white'));
+                    this.shootCooldown = 15;
+                    return;
+                }
+                this.health = Math.min(this.maxHealth, this.health + 50);
+                this.ammo[this.weapon.id]--;
+                floatingTexts.push(new FloatingText(this.x, this.y, "+50 Health", '#32cd32'));
+                this.shootCooldown = this.weapon.delay;
+                if (this.ammo[this.weapon.id] <= 0) {
+                    this.inventory.splice(this.activeSlot, 1);
+                    this.activeSlot = Math.max(0, this.activeSlot - 1);
+                    this.weapon = this.inventory[this.activeSlot] || WEAPONS.pistol;
+                }
+                return;
+            }
+
+            if (this.isPlayer && !this.weapon.isInfinite) {  
+                this.ammo[this.weapon.id]--;
+            }  
+            this.shootCooldown = this.weapon.delay;
+            const baseAngle = Math.atan2(ty - this.y, tx - this.x);  
+
+            if (this.weapon.isThrowable) {
+                throwables.push(new Throwable(this.x, this.y, baseAngle, this.weapon.speed, this.weapon.damage));
+                return;
+            }
+
+            for (let i = 0; i < this.weapon.bullets; i++) {  
+                const ang = baseAngle + (Math.random() - 0.5) * this.weapon.spread;
+                bullets.push({   
+                    x: this.x + Math.cos(baseAngle)*15, y: this.y + Math.sin(baseAngle)*15,   
+                    vx: Math.cos(ang)*this.weapon.speed, vy: Math.sin(ang)*this.weapon.speed,   
+                    damage: this.weapon.damage, owner: this, 
+                 
+                    color: this.weapon.id === 'rocket' ? '#ff4500' : '#ffea00',
+                    isExplosive: this.weapon.isExplosive || false
+                });
+            }  
+        }  
+    }  
+  
+    class Drop {  
+        constructor(x, y, type = null) {  
+            this.x = x;
+            this.y = y; this.size = 16; this.timer = Math.random() * 100;  
+            this.spamCooldown = 0;
+            if (type) this.type = type;
+            else {   
+                const r = Math.random();
+                if (r < 0.15) this.type = 'health';
+                else if (r < 0.70) this.type = 'ammo';   
+                else this.type = 'coin';
+            }  
+            this.color = this.type === 'health' ?
+            '#ffffff' : (this.type === 'ammo' ? '#5d4037' : '#ffd700');  
+        }  
+        draw() {  
+            const floatY = Math.sin(this.timer += 0.1) * 4;
+            drawShadow(this.x, this.y + 4 + floatY, 14);  
+            ctx.fillStyle = this.color;  
+            ctx.fillRect(this.x - 8, this.y - 8 + floatY, 16, 16);
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(this.x - 8, this.y - 8 + floatY, 16, 16);
+            if (this.type === 'health') {  
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x - 2, this.y - 6 + floatY, 4, 12);  
+                ctx.fillRect(this.x - 6, this.y - 2 + floatY, 12, 4);
+            } else if (this.type === 'coin') {  
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(this.x, this.y + floatY, 4, 0, Math.PI*2); ctx.fill();  
+            } else {  
+                ctx.fillStyle = 'white';
+                ctx.fillRect(this.x - 3, this.y - 4 + floatY, 6, 8);
+            }  
+        }  
+    }  
+  
+    function init() {  
+        statsUI.style.color = 'white';
+        walls = []; barrels = []; explosions = []; bullets = []; drops = []; props = [];
+        particles = [];  
+        floatingTexts = []; floors = []; shopkeepers = []; ponds = []; tunnels = [];
+        throwables = []; kills = 0;  
+          
+        walls.push(new Wall(-20, -20, MAP_SIZE+40, 20), new Wall(-20, MAP_SIZE, MAP_SIZE+40, 20), new Wall(-20, -20, 20, MAP_SIZE+40), new Wall(MAP_SIZE, -20, 20, MAP_SIZE+40));
+        for (let i = 0; i < 18; i++) { 
+            let attempts = 0;
+            while(attempts < 50) { 
+                let r = 70 + Math.random() * 120;
+                let px = Math.random() * MAP_SIZE; let py = Math.random() * MAP_SIZE;
+                if (!checkSpawnCollision(px - r, py - r, r*2, r*2)) { ponds.push(new Pond(px, py, r)); break;
+                } 
+                attempts++;
+            } 
+        } 
+ 
+        for (let i = 0; i < 8; i++) { 
+            let attempts = 0;
+            while(attempts < 50) { 
+                let isHorizontal = Math.random() > 0.5;
+                let w = isHorizontal ? 350 + Math.random() * 250 : 100; 
+                let h = isHorizontal ?
+                100 : 350 + Math.random() * 250; 
+                let px = Math.random() * (MAP_SIZE - w);
+                let py = Math.random() * (MAP_SIZE - h); 
+                  
+                if (!checkSpawnCollision(px, py, w, h)) { 
+                    floors.push({x: px, y: py, w: w, h: h, color: '#1a1a1a'});
+                    tunnels.push(new Tunnel(px, py, w, h)); 
+                      
+                    if (isHorizontal) { 
+                        walls.push(new Wall(px, py, w, 15));
+                        walls.push(new Wall(px, py + h - 15, w, 15)); 
+                    } else { 
+                        walls.push(new Wall(px, py, 15, h));
+                        walls.push(new Wall(px + w - 15, py, 15, h)); 
+                    } 
+                    break;
+                } 
+                attempts++;
+            } 
+        } 
+  
+        const weaponKeys = ['machinegun', 'shotgun', 'sniper', 'minigun', 'laser', 'smg', 'rocket', 'grenade'];
+        weaponKeys.forEach(weaponId => {  
+            let placed = false, attempts = 0;  
+            while (!placed && attempts < 200) {  
+                const w = 220, h = 180, bx = 100 + Math.random() * (MAP_SIZE - 400), by = 100 + Math.random() * (MAP_SIZE - 400);  
+              
+                if (Math.hypot((bx+w/2) - MAP_SIZE/2, (by+h/2) - MAP_SIZE/2) < 350) { attempts++; continue; }  
+                if (checkSpawnCollision(bx, by, w, h)) { attempts++; continue; } 
+                  
+                floors.push({x: bx, y: by, w: w, h: h, color: '#a1887f'});  
+              
+                walls.push(new Wall(bx, by, w, 20), new Wall(bx, by, 20, h), new Wall(bx + w - 20, by, 20, h), new Wall(bx, by + h - 20, 70, 20), new Wall(bx + 150, by + h - 20, 70, 20));  
+                shopkeepers.push(new Shopkeeper(bx + w/2, by + h/2, weaponId));  
+                placed = true;  
+            } 
+        });
+
+        for (let i = 0; i < 20; i++) { 
+            let attempts = 0;
+            while(attempts < 50) { 
+                let w = 180 + Math.random() * 120;
+                let h = 180 + Math.random() * 120; 
+                let bx = Math.random() * (MAP_SIZE - w);
+                let by = Math.random() * (MAP_SIZE - h); 
+                  
+                if (!checkSpawnCollision(bx, by, w, h)) { 
+                    floors.push({x: bx, y: by, w: w, h: h, color: '#8d6e63'});
+                    let wallThick = 20; let doorSize = 70; let doorSide = Math.floor(Math.random() * 4);
+                    if (doorSide === 0) { walls.push(new Wall(bx, by, (w/2) - (doorSize/2), wallThick));
+                    walls.push(new Wall(bx + (w/2) + (doorSize/2), by, (w/2) - (doorSize/2), wallThick)); } else walls.push(new Wall(bx, by, w, wallThick));
+                    if (doorSide === 2) { walls.push(new Wall(bx, by + h - wallThick, (w/2) - (doorSize/2), wallThick));
+                    walls.push(new Wall(bx + (w/2) + (doorSize/2), by + h - wallThick, (w/2) - (doorSize/2), wallThick));
+                    } else walls.push(new Wall(bx, by + h - wallThick, w, wallThick));
+                    if (doorSide === 3) { walls.push(new Wall(bx, by, wallThick, (h/2) - (doorSize/2)));
+                    walls.push(new Wall(bx, by + (h/2) + (doorSize/2), wallThick, (h/2) - (doorSize/2))); } else walls.push(new Wall(bx, by, wallThick, h));
+                    if (doorSide === 1) { walls.push(new Wall(bx + w - wallThick, by, wallThick, (h/2) - (doorSize/2)));
+                    walls.push(new Wall(bx + w - wallThick, by + (h/2) + (doorSize/2), wallThick, (h/2) - (doorSize/2)));
+                    } else walls.push(new Wall(bx + w - wallThick, by, wallThick, h)); 
+                    
+                    let numDrops = 3 + Math.floor(Math.random() * 3);
+                    for(let j=0; j < numDrops; j++) {
+                        let dropX = bx + 30 + Math.random() * (w - 60);
+                        let dropY = by + 30 + Math.random() * (h - 60);
+                        drops.push(new Drop(dropX, dropY));
+                    }
+                    break;
+                } 
+                attempts++;
+            } 
+        } 
+  
+        for (let i = 0; i < 40; i++) {  
+            let attempts = 0;
+            while(attempts < 50) { 
+                const s = 30 + Math.random() * 40;
+                const cx = Math.random() * MAP_SIZE, cy = Math.random() * MAP_SIZE;
+                if (!checkSpawnCollision(cx, cy, s, s)) { walls.push(new Wall(cx, cy, s, s, true)); break;
+                } 
+                attempts++;
+            } 
+        }  
+  
+        for (let i = 0; i < 45; i++) {  
+            let attempts = 0;
+            while(attempts < 50) { 
+                const w = 40 + Math.random() * 200;
+                const h = 40 + Math.random() * 200; 
+                const x = Math.random()*(MAP_SIZE-w), y = Math.random()*(MAP_SIZE-h);
+                if (Math.hypot(x-MAP_SIZE/2, y-MAP_SIZE/2) > 250 && !checkSpawnCollision(x, y, w, h)) { walls.push(new Wall(x,y,w,h)); break;
+                } 
+                attempts++;
+            } 
+        }  
+          
+        for (let i = 0; i < 35; i++) {  
+            let attempts = 0;
+            while(attempts < 50) { 
+                const bx = Math.random()*MAP_SIZE, by = Math.random()*MAP_SIZE;
+                if(!checkSpawnCollision(bx - 15, by - 15, 30, 30)) { barrels.push(new Barrel(bx, by)); break;
+                } 
+                attempts++;
+            } 
+        }  
+  
+        for(let i = 0; i < 50; i++) {  
+            let attempts = 0;
+            while (attempts < 50) { 
+                const type = Math.random() > 0.7 ?
+                'rock' : (Math.random() > 0.4 ? 'tree' : 'bush');  
+                const px = Math.random() * MAP_SIZE, py = Math.random() * MAP_SIZE;
+                const size = 40 + Math.random() * 50; 
+                if (!checkSpawnCollision(px - size/2, py - size/2, size, size)) { props.push(new Prop(px, py, type, size));
+                break; } 
+                attempts++;
+            } 
+        }  
+  
+        const clsInfo = CLASSES[selectedClass];
+        player = new Entity(MAP_SIZE/2, MAP_SIZE/2, clsInfo.color, true, clsInfo);
+        
+        bots = [];
+        for(let i=0; i<25; i++) {  
+            let bx, by;
+            do {   
+                bx = Math.random()*MAP_SIZE;
+                by = Math.random()*MAP_SIZE;   
+            } while (checkWallCollision(bx, by, 30) || Math.hypot(bx-player.x, by-player.y) < 500);  
+            bots.push(new Entity(bx, by, '#ff4500'));
+        }  
+    }  
+
+    function loop() {  
+        if (gameState !== 'playing') {
+            requestAnimationFrame(loop);
+            return;
+        }
+
+        frameCount++;
+        if (dashCooldown > 0) dashCooldown--;
+        if (player) {  
+            player.update();
+            if (selectedAbility === 'regen' && frameCount % 60 === 0 && player.health < player.maxHealth) {
+                player.health = Math.min(player.maxHealth, player.health + 2);
+                floatingTexts.push(new FloatingText(player.x, player.y, "+2", '#32cd32'));
+            }
+
+            if (player.health <= 0) {
+                player = null;
+                if (!gameOverProcessed) {
+                    losses++;
+                    let place = bots.length + 1;
+                    let earned = calculateReward(place);
+                    credits += earned;
+                    
+                    localStorage.setItem('coh_losses', losses);
+                    localStorage.setItem('coh_credits', credits);
+                    statsUI.innerText = `GAME OVER - Placed #${place} (+${earned} Credits) | Press ENTER to Return`;
+                    statsUI.style.color = 'red';
+                    
+                    gameState = 'gameover';
+                    gameOverProcessed = true;
+                }
+            }  
+        }  
+  
+        let targetX = (player ? player.x : camera.x) - canvas.width/2;
+        let targetY = (player ? player.y : camera.y) - canvas.height/2;
+        camera.x += (Math.max(0, Math.min(MAP_SIZE - canvas.width, targetX)) - camera.x) * 0.1;
+        camera.y += (Math.max(0, Math.min(MAP_SIZE - canvas.height, targetY)) - camera.y) * 0.1;  
+  
+        ctx.clearRect(0, 0, canvas.width, canvas.height);  
+        ctx.save();  
+          
+        let currentShakeX = 0;
+        let currentShakeY = 0;  
+        if (screenShake > 0) {  
+            currentShakeX = (Math.random() - 0.5) * screenShake;
+            currentShakeY = (Math.random() - 0.5) * screenShake;  
+            screenShake *= 0.85;  
+            if (screenShake < 0.5) screenShake = 0;
+        }  
+        ctx.translate(-camera.x + currentShakeX, -camera.y + currentShakeY);
+        
+        ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+        ctx.lineWidth = 2;
+        const gridSize = 100;  
+        const startX = Math.floor(camera.x / gridSize) * gridSize;
+        const startY = Math.floor(camera.y / gridSize) * gridSize;
+        for (let x = startX; x < camera.x + canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, camera.y); ctx.lineTo(x, camera.y + canvas.height); ctx.stroke();
+        }
+        for (let y = startY; y < camera.y + canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(camera.x, y); ctx.lineTo(camera.x + canvas.width, y); ctx.stroke();
+        }
+
+        floors.forEach(f => { ctx.fillStyle = f.color; ctx.fillRect(f.x, f.y, f.w, f.h); });
+        ponds.forEach(p => p.draw());
+
+        for (let i = drops.length - 1; i >= 0; i--) {
+            let d = drops[i];
+            d.draw();
+            if (player && Math.hypot(player.x - d.x, player.y - d.y) < player.size + d.size) {
+                if (d.type === 'health') {
+                    let hasMedkit = player.inventory.find(item => item.id === 'medkit');
+                    if (hasMedkit) {
+                        player.ammo['medkit']++;
+                        floatingTexts.push(new FloatingText(d.x, d.y, "+1 Medkit", '#ffffff'));
+                        drops.splice(i, 1);
+                    } else if (player.inventory.length < 5) {
+                        player.inventory.push(WEAPONS.medkit);
+                        player.ammo['medkit'] = 1;
+                        floatingTexts.push(new FloatingText(d.x, d.y, "Medkit Picked Up", '#ffffff'));
+                        drops.splice(i, 1);
+                    } else if (player.health < player.maxHealth) {
+                        player.health = Math.min(player.maxHealth, player.health + 50);
+                        floatingTexts.push(new FloatingText(d.x, d.y, "+50 Health", '#32cd32'));
+                        drops.splice(i, 1);
+                    } else {
+                        if (d.spamCooldown <= 0) {
+                             floatingTexts.push(new FloatingText(d.x, d.y, "Inventory Full!", 'red'));
+                             d.spamCooldown = 60;
+                        } else { d.spamCooldown--; }
+                    }
+                } else if (d.type === 'ammo') {
+                    if (!player.weapon.isConsumable && !player.weapon.isInfinite) {
+                        player.ammo[player.weapon.id] += 30;
+                        floatingTexts.push(new FloatingText(d.x, d.y, "+Ammo", '#5d4037'));
+                        drops.splice(i, 1);
+                    } else {
+                        let gun = player.inventory.find(w => !w.isInfinite && !w.isConsumable);
+                        if (gun) {
+                            player.ammo[gun.id] += 30;
+                            floatingTexts.push(new FloatingText(d.x, d.y, "+Ammo", '#5d4037'));
+                            drops.splice(i, 1);
+                        } else {
+                            if (d.spamCooldown <= 0) {
+                                floatingTexts.push(new FloatingText(d.x, d.y, "Need a Gun!", 'red'));
+                                d.spamCooldown = 60;
+                            } else { d.spamCooldown--; }
+                        }
+                    }
+                } else if (d.type === 'coin') {
+                    player.coins += 5;
+                    floatingTexts.push(new FloatingText(d.x, d.y, "+5 Coins", '#ffd700'));
+                    drops.splice(i, 1);
+                }
+            }
+        }
+
+        shopkeepers.forEach(s => s.draw());
+        props.forEach(p => p.draw());
+        walls.forEach(w => w.draw());
+
+        for (let i = throwables.length - 1; i >= 0; i--) {
+            throwables[i].update();
+            throwables[i].draw();
+            if (throwables[i].timer <= 0) throwables.splice(i, 1);
+        }
+
+        for (let i = barrels.length - 1; i >= 0; i--) {
+            let b = barrels[i];
+            b.draw();
+            if (b.health <= 0) { b.explode(); barrels.splice(i, 1); }
+        }
+
+        for (let i = bots.length - 1; i >= 0; i--) {
+            let b = bots[i];
+            b.update(); b.draw();
+            if (b.health <= 0) {
+                kills++;
+                if (player && selectedAbility === 'vampire' && player.health < player.maxHealth) {
+                    player.health = Math.min(player.maxHealth, player.health + 15);
+                    floatingTexts.push(new FloatingText(player.x, player.y, "+15 HP", '#e53935'));
+                }
+
+                drops.push(new Drop(b.x, b.y, 'coin'));
+                if(Math.random() > 0.5) drops.push(new Drop(b.x + 10, b.y + 10));
+                bots.splice(i, 1);
+            }
+        }
+
+        if (player) player.draw();
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.x += b.vx; b.y += b.vy;
+            
+            ctx.fillStyle = b.color;
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.isExplosive ? 6 : 4, 0, Math.PI*2); ctx.fill();
+            let hit = false;
+            
+            if (checkWallCollision(b.x, b.y, 4)) hit = true;
+            if (!hit) {
+                for (let barrel of barrels) {
+                    if (Math.hypot(b.x - barrel.x, b.y - barrel.y) < barrel.size/2 + 4) {
+                        barrel.health -= b.damage;
+                        hit = true; break;
+                    }
+                }
+            }
+
+            if (!hit) {
+                if (player && b.owner !== player) {
+                    if (Math.hypot(b.x - player.x, b.y - player.y) < player.size) {
+   
+                        player.health -= b.damage;
+                        floatingTexts.push(new FloatingText(player.x, player.y, b.damage, 'red'));
+                        for(let j=0; j<3; j++) particles.push(new Particle(b.x, b.y, 'red', 4));
+                        hit = true;
+                    }
+                }
+            }
+
+            if (!hit) {
+                for (let bot of bots) {
+                    if (b.owner !== bot && Math.hypot(b.x - bot.x, b.y - bot.y) < bot.size) {
+    
+                        bot.health -= b.damage;
+                        floatingTexts.push(new FloatingText(bot.x, bot.y, b.damage, 'white'));
+                        for(let j=0; j<3; j++) particles.push(new Particle(b.x, b.y, 'red', 4));
+                        hit = true; break;
+                    }
+                }
+            }
+
+            if (hit || b.x < 0 || b.y < 0 || b.x > MAP_SIZE || b.y > MAP_SIZE) {
+                if (b.isExplosive && hit) { createExplosion(b.x, b.y, b.damage, 150);
+                }
+                bullets.splice(i, 1);
+            }
+        }
+
+        tunnels.forEach(t => t.drawRoof());
+        for (let i = explosions.length - 1; i >= 0; i--) { explosions[i].update(); explosions[i].draw(); if (explosions[i].life <= 0) explosions.splice(i, 1);
+        }
+        for (let i = particles.length - 1; i >= 0; i--) { particles[i].update();
+        particles[i].draw(); if (particles[i].life <= 0) particles.splice(i, 1); }
+        for (let i = floatingTexts.length - 1; i >= 0; i--) { floatingTexts[i].update();
+        floatingTexts[i].draw(); if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1); }
+
+        ctx.restore();
+        if (player) {
+            statsUI.innerText = `Health: ${Math.floor(player.health)} |
+            Coins: ${player.coins} | Kills: ${kills}`;
+            for(let j = 0; j < 5; j++) {
+                const slotDiv = document.getElementById('slot' + j);
+                if (j < player.inventory.length) {
+                    let w = player.inventory[j];
+                    let ammoTxt = w.isInfinite ? '∞' : player.ammo[w.id];
+                    slotDiv.innerText = `${j+1}: ${w.name} (${ammoTxt})`;
+                } else { slotDiv.innerText = `${j+1}: [Empty]`;
+                }
+                slotDiv.className = j === player.activeSlot ?
+                'inv-slot active' : 'inv-slot';
+            }
+        }
+        
+        countUI.innerText = `Bots Remaining: ${bots.length}`;
+        if(bots.length === 0 && player) {
+            if (!gameOverProcessed) {
+                wins++;
+                let earned = calculateReward(1);
+                credits += earned;
+                
+                localStorage.setItem('coh_wins', wins);
+                localStorage.setItem('coh_credits', credits);
+                
+                statsUI.innerText = `VICTORY ROYALE!
+                (+${earned} Credits) - Press ENTER to Return`;
+                statsUI.style.color = 'lime';
+                
+                gameState = 'gameover';
+                gameOverProcessed = true;
+            }
+        }
+
+        requestAnimationFrame(loop);
+    }  
+
+    requestAnimationFrame(loop);
+
+</script>  
+  
+</body></html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Multiplayer Combat</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #2b2b2b; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- This imports the Socket.io library so the client can talk to the server -->
+    <script src="index_files/socket.io.js"></script>
+    
+    <script>
+        const socket = io(); 
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Local variables
+        let localPlayer = { x: 400, y: 300, speed: 5 };
+        let mouse = { x: 0, y: 0 };
+        let keys = {};
+        
+        // This will hold the data sent from the server
+        let networkPlayers = {}; 
+
+        // Track Keyboard
+        window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+        
+        // Track Mouse
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Whenever the server broadcasts the state, update our networkPlayers list
+        socket.on('gameState', (serverPlayers) => {
+            networkPlayers = serverPlayers;
+        });
+
+        function loop() {
+            // 1. Calculate Local Movement
+            if (keys['w']) localPlayer.y -= localPlayer.speed;
+            if (keys['s']) localPlayer.y += localPlayer.speed;
+            if (keys['a']) localPlayer.x -= localPlayer.speed;
+            if (keys['d']) localPlayer.x += localPlayer.speed;
+
+            // Calculate aim angle based on mouse
+            let angle = Math.atan2(mouse.y - localPlayer.y, mouse.x - localPlayer.x);
+
+            // 2. Send our new position and aim to the server
+            socket.emit('playerInput', { 
+                x: localPlayer.x, 
+                y: localPlayer.y, 
+                angle: angle 
+            });
+
+            // 3. Clear the canvas for the new frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 4. Draw ALL players based on the server's data
+            for (let id in networkPlayers) {
+                let p = networkPlayers[id];
+                
+                // Draw a shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(p.x - 12, p.y - 8, 24, 24);
+
+                // If the ID matches our socket ID, draw us blue. Otherwise, draw enemies red.
+                ctx.fillStyle = id === socket.id ? '#00bfff' : '#ff3333';
+                ctx.fillRect(p.x - 15, p.y - 15, 30, 30);  
+                  
+                // Draw the gun barrel
+                ctx.save();   
+                ctx.translate(p.x, p.y); 
+                ctx.rotate(p.angle);  
+                ctx.fillStyle = '#aaaaaa'; 
+                ctx.fillRect(15, -4, 20, 8); // Gun sticks out from the body
+                ctx.restore();
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        // Start the game loop
+        loop();
+    </script>
+
+</body></html>
